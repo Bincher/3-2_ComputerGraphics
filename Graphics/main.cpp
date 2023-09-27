@@ -14,31 +14,40 @@ void setPixel(int x, int y, int r, int g, int b) {
     Iarray[x][y][1] = g;
     Iarray[x][y][2] = b;
 }
-
-void circlePlot(int Cx, int Cy, int x, int y, int r, int g, int b)
+void ellipsePlot(int Cx, int Cy, int x, int y, int r, int g, int b)
 {
-    setPixel(Cx + x, Cy + y, r, g, b);
+    setPixel(Cx + x, Cy + y, r, g, b);//marking function according to the output device
     setPixel(Cx - x, Cy + y, r, g, b);
     setPixel(Cx + x, Cy - y, r, g, b);
     setPixel(Cx - x, Cy - y, r, g, b);
-    setPixel(Cx + y, Cy + x, r, g, b);
-    setPixel(Cx - y, Cy + x, r, g, b);
-    setPixel(Cx + y, Cy - x, r, g, b);
-    setPixel(Cx - y, Cy - x, r, g, b);
 }
-
-void circleMidpoint(int xCenter, int yCenter, int radius, int r, int g, int b)
+void ellipseMidpoint(int xCenter, int yCenter, int Rx, int Ry, int r, int g, int b)
 {
-    int x = 0, y = radius, p = 1 - radius;
+    int Rx2 = Rx * Rx, Ry2 = Ry * Ry, twoRx2 = 2 * Rx2, twoRy2 = 2 * Ry2;
+    int p, x = 0, y = Ry, px = 0, py = twoRx2 * y;
 
-    circlePlot(xCenter, yCenter, x, y, r, g, b);
+    ellipsePlot(xCenter, yCenter, x, y, r, g, b);//start pixel marking..
 
-    while (x <= y) {
+    //Region 1
+    p = round(Ry2 - (Rx2 * Ry) + (0.25 * Rx2));
+    while (px < py) {
         x++;
-        if (p < 0) p += 2 * x + 1;
-        else { y--; p += 2 * (x - y) + 1; }
+        px += twoRy2;
+        if (p < 0) p += Ry2 + px;
+        else { y--; py -= twoRx2; p += Ry2 + px - py; }
 
-        circlePlot(xCenter, yCenter, x, y, r, g, b);
+        ellipsePlot(xCenter, yCenter, x, y, r, g, b);//marking..
+    }
+
+    //Region 2
+    p = round(Ry2 * (x + 0.5) * (x + 0.5) + Rx2 * (y - 1) * (y - 1) - Rx2 * Ry2);
+    while (y > 0) {
+        y--;
+        py -= twoRx2;
+        if (p > 0) p += Rx2 - py;
+        else { x++; px += twoRy2; p += Rx2 - py + px; }
+
+        ellipsePlot(xCenter, yCenter, x, y, r, g, b);//marking..
     }
 }
 
@@ -46,13 +55,13 @@ int main()
 {
     memset(Iarray, 255, H * W);
 
-    circleMidpoint(320, 240, 100, 0, 0, 255);
-    circleMidpoint(300, 200, 50, 255, 0, 0);
-    circleMidpoint(240, 200, 70, 0, 255, 0);
-    circleMidpoint(160, 120, 30, 255, 0, 255);
+    ellipseMidpoint(320, 240, 100, 10, 0, 0, 255);
+    ellipseMidpoint(300, 200, 50, 100, 255, 0, 0);
+    ellipseMidpoint(240, 200, 70, 100, 0, 255, 0);
+    ellipseMidpoint(160, 120, 30, 100, 255, 0, 255);
 
     FILE* fp;
-    fp = fopen("circle.ppm", "wb");
+    fp = fopen("ellipse.ppm", "wb");
     fprintf(fp, "P6\n");
     fprintf(fp, "%d %d\n", W, H); // File size
     fprintf(fp, "255\n");         // Max color level
