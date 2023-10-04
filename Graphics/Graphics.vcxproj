@@ -127,6 +127,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bresenham.cpp" />
+    <ClCompile Include="circle.cpp" />
+    <ClCompile Include="dda.cpp" />
+    <ClCompile Include="ellipse.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
