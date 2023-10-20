@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
+#include <time.h>
 #pragma warning(disable: 4996)
 #define H 800
-#define W 1000
+#define W 1600
+#define M_PI 3.14159265358979323846
 
 unsigned char Iarray[H][W][3];
 
-enum { SOLID, DASHED, DOTTED, USER };
-
-// DDA 알고리즘을 이용한 선 그리기 함수
-void lineDDA(int x1, int y1, int x2, int y2, int lt, unsigned char r, unsigned char g, unsigned char b) {
+void lineDDA(int x1, int y1, int x2, int y2, unsigned char r, unsigned char g, unsigned char b) {
     int dx = x2 - x1, dy = y2 - y1, step, k;
     float xinc, yinc, x = (float)x1, y = (float)y1;
 
@@ -31,45 +31,60 @@ void lineDDA(int x1, int y1, int x2, int y2, int lt, unsigned char r, unsigned c
     }
 }
 
-// Sierpinski Triangle
-void sierpinski(int x1, int y1, int x2, int y2, int x3, int y3, int depth, int lt, unsigned char r, unsigned char g, unsigned char b) {
+void fractalTree(int x1, int y1, int length, int angle, int depth, unsigned char r, unsigned char g, unsigned char b) {
     if (depth == 0) {
-        lineDDA(x1, y1, x2, y2, lt, r, g, b);
-        lineDDA(x2, y2, x3, y3, lt, r, g, b);
-        lineDDA(x3, y3, x1, y1, lt, r, g, b);
+        return;
     }
-    else {
-        // 삼각형 중간 지점 
-        int mid1x = (x1 + x2) / 2;
-        int mid1y = (y1 + y2) / 2;
-        int mid2x = (x2 + x3) / 2;
-        int mid2y = (y2 + y3) / 2;
-        int mid3x = (x1 + x3) / 2;
-        int mid3y = (y1 + y3) / 2;
 
-        // 재귀적으로 작은 삼각형을 그린다
-        sierpinski(x1, y1, mid1x, mid1y, mid3x, mid3y, depth - 1, lt, r, g, b);
-        sierpinski(mid1x, mid1y, x2, y2, mid2x, mid2y, depth - 1, lt, r, g, b);
-        sierpinski(mid3x, mid3y, mid2x, mid2y, x3, y3, depth - 1, lt, r, g, b);
+    int x2 = x1 + (int)(length * sin(angle * M_PI / 180));
+    int y2 = y1 - (int)(length * cos(angle * M_PI / 180));
+    lineDDA(x1, y1, x2, y2, r, g, b);
+
+    int angle1 = angle + 30;
+    int length1 = (int)(length * 0.7);
+    fractalTree(x2, y2, length1, angle1, depth - 1, r, g, b);
+
+    int angle2 = angle - 30;
+    int length2 = (int)(length * 0.7);
+    fractalTree(x2, y2, length2, angle2, depth - 1, r, g, b);
+}
+void fractalTreeRandom(int x1, int y1, int length, int angle, int depth, unsigned char r, unsigned char g, unsigned char b) {
+    if (depth == 0) {
+        return;
     }
+
+    int x2 = x1 + (int)(length * sin(angle * M_PI / 180));
+    int y2 = y1 - (int)(length * cos(angle * M_PI / 180));
+    lineDDA(x1, y1, x2, y2, r, g, b);
+
+    int angle1 = angle + (rand() % 60) - 30; // -30도에서 30도 사이 랜덤한 각도
+    int length1 = (int)(length * (0.5 + ((double)rand() / RAND_MAX) * 0.5)); // 50%에서 100% 사이의 길이
+    fractalTreeRandom(x2, y2, length1, angle1, depth - 1, r, g, b);
+
+    int angle2 = angle + (rand() % 60) - 30; // -30도에서 30도 사이 랜덤한 각도
+    int length2 = (int)(length * (0.5 + ((double)rand() / RAND_MAX) * 0.5)); // 50%에서 100% 사이의 길이
+    fractalTreeRandom(x2, y2, length2, angle2, depth - 1, r, g, b);
+
 }
 
 int main() {
     printf("시작\n");
 
-    // 큰 삼각형을 그리기 위한 좌표 설정
-    int x1 = 420, y1 = 100;
-    int x2 = 100, y2 = 580;
-    int x3 = 740, y3 = 580;
+    int x1 = 100, y1 = 800;
+    int length = 150;
+    int angle = 90;
 
-    sierpinski(x1, y1, x2, y2, x3, y3, 4, SOLID, 255, 255, 255);
+    srand((unsigned)time(NULL));
 
-    printf("파일 생성 시작\n");
+    fractalTree(x1, y1, length, angle, 7, 0, 128, 0); 
+    printf("대칭형 트리 생성 완료\n");
+
+    printf("대칭형 트리 파일 생성 시작\n");
     FILE* fp;
-    fp = fopen("sierpinski_triangle.ppm", "wb");
+    fp = fopen("fractal_tree_symmetric.ppm", "wb");
     fprintf(fp, "P6\n");
-    fprintf(fp, "%d %d\n", W, H); // 파일 크기
-    fprintf(fp, "255\n");         // 최대 레벨
+    fprintf(fp, "%d %d\n", W, H);
+    fprintf(fp, "255\n");
 
     for (int i = 0; i < H; i++) {
         for (int j = 0; j < W; j++) {
@@ -77,6 +92,34 @@ int main() {
         }
     }
     fclose(fp);
-    printf("완료\n");
+
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+            Iarray[i][j][0] = 0;
+            Iarray[i][j][1] = 0;
+            Iarray[i][j][2] = 0;
+        }
+    }
+
+    x1 = 100, y1 = 800;
+    length = 150;
+    angle = 90;
+
+    fractalTreeRandom(x1, y1, length, angle, 7, 0, 128, 0);
+    printf("랜덤형 트리 생성 완료\n");
+
+    printf("랜덤형 트리 파일 생성 시작\n");
+    fp = fopen("fractal_tree_symmetric_random.ppm", "wb");
+    fprintf(fp, "P6\n");
+    fprintf(fp, "%d %d\n", W, H);
+    fprintf(fp, "255\n");
+
+    for (int i = 0; i < H; i++) {
+        for (int j = 0; j < W; j++) {
+            fwrite(&Iarray[i][j], sizeof(unsigned char), 3, fp);
+        }
+    }
+    fclose(fp);
+
     return 0;
 }
