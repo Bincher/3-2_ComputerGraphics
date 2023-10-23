@@ -76,7 +76,7 @@ int main() {
 
     srand((unsigned)time(NULL));
 
-    fractalTree(x1, y1, length, angle, 7, 0, 128, 0); 
+    fractalTree(x1, y1, length, angle, 7, 255, 255, 255); 
     printf("대칭형 트리 생성 완료\n");
 
     printf("대칭형 트리 파일 생성 시작\n");
@@ -105,7 +105,7 @@ int main() {
     length = 150;
     angle = 90;
 
-    fractalTreeRandom(x1, y1, length, angle, 7, 0, 128, 0);
+    fractalTreeRandom(x1, y1, length, angle, 7, 255, 255, 255);
     printf("랜덤형 트리 생성 완료\n");
 
     printf("랜덤형 트리 파일 생성 시작\n");
