@@ -7,24 +7,27 @@ int mFlag = 0;
 
 GLint TopLeftX, TopLeftY, BottomRightX, BottomRightY;
 
-double currentXMin = -2.5;
-double currentXMax = 1.0;
-double currentYMin = -1.0;
-double currentYMax = 1.0;
+double currentXMin = -2.0;
+double currentXMax = 2.0;
+double currentYMin = -2.0;
+double currentYMax = 2.0;
 
-void generateMandelbrot(double xMin, double xMax, double yMin, double yMax) {
+double juliaConstantReal = -0.7;
+double juliaConstantImag = 0.27015;
+
+void generateJuliaSet(double xMin, double xMax, double yMin, double yMax) {
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < M; j++) {
             double x = xMin + (double)j / M * (xMax - xMin);
             double y = yMin + (double)i / M * (yMax - yMin);
 
-            double zx = 0, zy = 0;
-            double cx = x, cy = y;
+            double zx = x;
+            double zy = y;
 
             int iteration = 0;
             while (iteration < 100 && zx * zx + zy * zy < 4.0) {
-                double tmp = zx * zx - zy * zy + cx;
-                zy = 2.0 * zx * zy + cy;
+                double tmp = zx * zx - zy * zy + juliaConstantReal;
+                zy = 2.0 * zx * zy + juliaConstantImag;
                 zx = tmp;
                 iteration++;
             }
@@ -34,13 +37,13 @@ void generateMandelbrot(double xMin, double xMax, double yMin, double yMax) {
     }
 }
 
-void generateMandelbrotForViewport(double xMin, double xMax, double yMin, double yMax) {
+void generateJuliaSetForViewport(double xMin, double xMax, double yMin, double yMax) {
     currentXMin = xMin;
     currentXMax = xMax;
     currentYMin = yMin;
     currentYMax = yMax;
 
-    generateMandelbrot(xMin, xMax, yMin, yMax);
+    generateJuliaSet(xMin, xMax, yMin, yMax);
 }
 
 void MyDisplay() {
@@ -93,7 +96,7 @@ void MyMouseClick(GLint Button, GLint State, GLint X, GLint Y) {
             double yMin = currentYMax - (double)BottomRightY / M * (currentYMax - currentYMin);
             double yMax = currentYMax - (double)TopLeftY / M * (currentYMax - currentYMin);
 
-            generateMandelbrotForViewport(xMin, xMax, yMin, yMax);
+            generateJuliaSetForViewport(xMin, xMax, yMin, yMax);
 
             glutPostRedisplay();
         }
@@ -118,13 +121,13 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(0, 0);
-    glutCreateWindow("Mandelbrot Explorer");
+    glutCreateWindow("Julia Set");
     MyInit();
     glutDisplayFunc(MyDisplay);
     glutMouseFunc(MyMouseClick);
     glutMotionFunc(MyMouseMove);
 
-    generateMandelbrot(currentXMin, currentXMax, currentYMin, currentYMax);
+    generateJuliaSet(currentXMin, currentXMax, currentYMin, currentYMax);
     glutPostRedisplay();
 
     glutMainLoop();
