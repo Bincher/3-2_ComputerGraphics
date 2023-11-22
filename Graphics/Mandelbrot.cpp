@@ -1,6 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
-#include <cmath>
+#include <iostream>
 #include <gl/glut.h>
 
 const int M = 500;
@@ -8,6 +6,11 @@ int image[M][M];
 int mFlag = 0;
 
 GLint TopLeftX, TopLeftY, BottomRightX, BottomRightY;
+
+double currentXMin = -2.5;
+double currentXMax = 1.0;
+double currentYMin = -1.0;
+double currentYMax = 1.0;
 
 void generateMandelbrot(double xMin, double xMax, double yMin, double yMax) {
     for (int i = 0; i < M; i++) {
@@ -26,17 +29,17 @@ void generateMandelbrot(double xMin, double xMax, double yMin, double yMax) {
                 iteration++;
             }
 
-            // 색상값 설정 (iteration 값 활용)
             image[i][j] = iteration % 256;
         }
     }
 }
 
-void generateMandelbrotForViewport() {
-    double xMin = (double)TopLeftX / M * 3.5 - 2.5;
-    double xMax = (double)BottomRightX / M * 3.5 - 2.5;
-    double yMin = (double)TopLeftY / M * 2.0 - 1.0;
-    double yMax = (double)BottomRightY / M * 2.0 - 1.0;
+void generateMandelbrotForViewport(double xMin, double xMax, double yMin, double yMax) {
+    currentXMin = xMin;
+    currentXMax = xMax;
+    currentYMin = yMin;
+    currentYMax = yMax;
+
     generateMandelbrot(xMin, xMax, yMin, yMax);
 }
 
@@ -44,7 +47,6 @@ void MyDisplay() {
     glViewport(0, 0, 500, 500);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Draw the Mandelbrot
     glBegin(GL_POINTS);
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < M; j++) {
@@ -55,7 +57,6 @@ void MyDisplay() {
     glEnd();
 
     if (mFlag) {
-        // During dragging, draw the red border to represent the selected region
         glColor3f(1.0, 0.0, 0.0);
         glBegin(GL_LINE_LOOP);
         glVertex3f(TopLeftX / 500.0, (500 - TopLeftY) / 500.0, 0.0);
@@ -74,17 +75,26 @@ void MyMouseClick(GLint Button, GLint State, GLint X, GLint Y) {
             TopLeftX = X;
             TopLeftY = Y;
             mFlag = 1;
-            printf("시작 좌표 : %d %d\n", X, Y);
         }
         else if (State == GLUT_UP) {
             BottomRightX = X;
             BottomRightY = Y;
             mFlag = 0;
 
-            // Generate Mandelbrot based on the selected region
-            generateMandelbrotForViewport();
+            if (BottomRightX < TopLeftX) {
+                std::swap(TopLeftX, BottomRightX);
+            }
+            if (BottomRightY < TopLeftY) {
+                std::swap(TopLeftY, BottomRightY);
+            }
 
-            printf("끝 좌표 : %d %d\n", X, Y);
+            double xMin = (double)TopLeftX / M * (currentXMax - currentXMin) + currentXMin;
+            double xMax = (double)BottomRightX / M * (currentXMax - currentXMin) + currentXMin;
+            double yMin = currentYMax - (double)BottomRightY / M * (currentYMax - currentYMin);
+            double yMax = currentYMax - (double)TopLeftY / M * (currentYMax - currentYMin);
+
+            generateMandelbrotForViewport(xMin, xMax, yMin, yMax);
+
             glutPostRedisplay();
         }
     }
@@ -114,8 +124,7 @@ int main(int argc, char** argv) {
     glutMouseFunc(MyMouseClick);
     glutMotionFunc(MyMouseMove);
 
-    // Initial display of the Mandelbrot set
-    generateMandelbrot(-2.5, 1.0, -1.0, 1.0);
+    generateMandelbrot(currentXMin, currentXMax, currentYMin, currentYMax);
     glutPostRedisplay();
 
     glutMainLoop();
