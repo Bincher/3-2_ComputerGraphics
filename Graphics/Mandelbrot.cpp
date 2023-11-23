@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
     glutInitWindowSize(500, 500);
     glutInitWindowPosition(0, 0);
-    glutCreateWindow("Julia Set");
+    glutCreateWindow("20190207_±è¼ººó");
     MyInit();
     glutDisplayFunc(MyDisplay);
     glutMouseFunc(MyMouseClick);
